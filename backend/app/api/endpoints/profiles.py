@@ -12,13 +12,38 @@ from app.schemas.profile import (
 )
 from fastapi import File, UploadFile, HTTPException
 import os
-import uuid
+import tempfile
+from starlette.concurrency import run_in_threadpool
 from app.resume_parser import parse_resume
+from app.services.cloudinary_storage import (
+    StorageConfigurationError,
+    delete_asset,
+    upload_bytes,
+)
 
 router = APIRouter()
 
 worker_required = RoleChecker(["worker"])
 employer_required = RoleChecker(["employer"])
+MAX_PROFILE_UPLOAD_BYTES = 10 * 1024 * 1024
+
+
+async def _read_upload(file: UploadFile) -> bytes:
+    content = await file.read(MAX_PROFILE_UPLOAD_BYTES + 1)
+    if not content:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+    if len(content) > MAX_PROFILE_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds the 10 MB upload limit")
+    return content
+
+
+async def _cloudinary_upload(content: bytes, **options):
+    try:
+        return await run_in_threadpool(upload_bytes, content, **options)
+    except StorageConfigurationError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="Cloud file upload failed") from exc
 
 # =========================
 # WORKER PROFILE ROUTES
@@ -131,24 +156,34 @@ async def upload_worker_resume(
     current_user: User = Depends(worker_required),
     db: Session = Depends(get_db)
 ):
-    if not file.filename.endswith(('.pdf', '.docx')):
+    filename = file.filename or "resume"
+    extension = os.path.splitext(filename)[1].lower()
+    if extension not in ('.pdf', '.docx'):
         raise HTTPException(status_code=400, detail="Only PDF or DOCX files are supported")
-        
-    filename = f"{uuid.uuid4()}_{file.filename}"
-    file_path = os.path.join("static", "uploads", filename)
-    
-    with open(file_path, "wb") as f:
-        content = await file.read()
-        f.write(content)
-        
-    parsed_data = parse_resume(file_path)
+
+    content = await _read_upload(file)
+    with tempfile.NamedTemporaryFile(suffix=extension, delete=False) as temporary_file:
+        temporary_file.write(content)
+        temporary_path = temporary_file.name
+    try:
+        parsed_data = await run_in_threadpool(parse_resume, temporary_path)
+    finally:
+        os.unlink(temporary_path)
+
+    uploaded = await _cloudinary_upload(
+        content,
+        folder="rozgar/resumes",
+        resource_type="raw",
+        public_id=f"worker-{current_user.id}-resume{extension}",
+        filename=filename,
+    )
     
     profile = db.query(WorkerProfile).filter(WorkerProfile.user_id == current_user.id).first()
     if not profile:
         profile = WorkerProfile(user_id=current_user.id)
         db.add(profile)
         
-    profile.resume_url = f"/static/uploads/{filename}"
+    profile.resume_url = uploaded["secure_url"]
     
     # Auto-populate fields if present
     if parsed_data.get('headline'): profile.headline = parsed_data['headline']
@@ -168,17 +203,18 @@ async def upload_profile_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if not file.content_type.startswith("image/"):
+    if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
-        
-    filename = f"photo_{uuid.uuid4()}_{file.filename}"
-    file_path = os.path.join("static", "uploads", filename)
-    
-    with open(file_path, "wb") as f:
-        content = await file.read()
-        f.write(content)
-        
-    photo_url = f"/static/uploads/{filename}"
+
+    content = await _read_upload(file)
+    uploaded = await _cloudinary_upload(
+        content,
+        folder="rozgar/profile-photos",
+        resource_type="image",
+        public_id=f"user-{current_user.id}",
+        filename=file.filename or "profile-photo",
+    )
+    photo_url = uploaded["secure_url"]
     
     if current_user.role == "worker":
         profile = db.query(WorkerProfile).filter(WorkerProfile.user_id == current_user.id).first()
@@ -214,16 +250,22 @@ def delete_profile_avatar(
     if not profile or not profile.profile_picture_url:
         raise HTTPException(status_code=404, detail="No profile photo to delete")
 
-    # Remove the physical file if it exists in static/uploads
-    filename = os.path.basename(profile.profile_picture_url)
-    file_path = os.path.join("static", "uploads", filename)
-    if os.path.exists(file_path) and os.path.isfile(file_path):
+    if "res.cloudinary.com" in profile.profile_picture_url:
         try:
+            delete_asset(
+                f"rozgar/profile-photos/user-{current_user.id}",
+                resource_type="image",
+            )
+        except StorageConfigurationError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail="Failed to remove cloud profile photo") from exc
+    else:
+        filename = os.path.basename(profile.profile_picture_url)
+        file_path = os.path.join("static", "uploads", filename)
+        if os.path.isfile(file_path):
             os.remove(file_path)
-        except Exception:
-            raise HTTPException(status_code=500, detail="Failed to remove profile photo from disk")
 
-    # Reset DB field
     profile.profile_picture_url = None
     db.commit()
     return {"detail": "Profile photo removed"}

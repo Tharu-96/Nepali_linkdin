@@ -6,11 +6,12 @@ from datetime import datetime
 import json
 import uuid
 import asyncio
-import os
+from starlette.concurrency import run_in_threadpool
 from app.api.deps import get_current_user
 from app.core.database import get_db, SessionLocal
 from app.models.user import User, Message
 from app.schemas.chat import MessageResponse, ConversationResponse, MessageCreate
+from app.services.cloudinary_storage import StorageConfigurationError, upload_bytes
 
 # =====================================================================
 # 🛠️ FIXED: Pluralized "websockets" to match your actual filename
@@ -228,21 +229,34 @@ async def upload_file(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user)
 ):
-    """Simple, authenticated upload handler that saves files to `static/uploads`.
-    Returns a `file_url` suitable for public consumption (served from /static).
-    """
-    os.makedirs(os.path.join("static", "uploads"), exist_ok=True)
-    filename = f"{uuid.uuid4().hex}_{file.filename}"
-    dest = os.path.join("static", "uploads", filename)
-    content = await file.read()
-    with open(dest, "wb") as f:
-        f.write(content)
+    max_bytes = 10 * 1024 * 1024
+    content = await file.read(max_bytes + 1)
+    if not content:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+    if len(content) > max_bytes:
+        raise HTTPException(status_code=413, detail="File exceeds the 10 MB upload limit")
+
+    filename = file.filename or "attachment"
+    try:
+        uploaded = await run_in_threadpool(
+            upload_bytes,
+            content,
+            folder="rozgar/chat-attachments",
+            resource_type="auto",
+            filename=filename,
+        )
+    except StorageConfigurationError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="Cloud file upload failed") from exc
 
     return {
-        "file_url": f"/static/uploads/{filename}",
+        "file_url": uploaded["secure_url"],
         "file_type": file.content_type,
-        "filename": file.filename,
+        "filename": filename,
         "size": len(content),
+        "public_id": uploaded["public_id"],
+        "resource_type": uploaded["resource_type"],
     }
 
 # =====================================================================
