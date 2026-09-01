@@ -1,0 +1,258 @@
+/* ── Google Fonts Import ────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base Layer ─────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-background text-secondary-900 font-sans antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight text-secondary-900;
+  }
+}
+
+/* ── Reusable Component Classes ─────────────────────────────────────── */
+@layer components {
+
+  /* ── Buttons ────────────────────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer;
+  }
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 shadow-sm hover:shadow-md active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply btn bg-secondary-100 text-secondary-700 hover:bg-secondary-200 focus:ring-secondary-400;
+  }
+  .btn-outline {
+    @apply btn bg-white border-2 border-secondary-200 text-secondary-700 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 focus:ring-primary-500;
+  }
+  .btn-danger {
+    @apply btn bg-danger-500 text-white hover:bg-danger-600 focus:ring-danger-400 shadow-sm;
+  }
+  .btn-success {
+    @apply btn bg-success-500 text-white hover:bg-success-600 focus:ring-success-400 shadow-sm;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900;
+  }
+  .btn-sm {
+    @apply text-xs px-3 py-1.5 rounded-lg;
+  }
+  .btn-lg {
+    @apply text-base px-8 py-3.5 rounded-xl;
+  }
+  .btn-icon {
+    @apply p-2 rounded-lg text-secondary-400 hover:text-secondary-700 hover:bg-secondary-100 transition-colors;
+  }
+
+  /* ── Inputs ─────────────────────────────────────────────────────── */
+  .input-field {
+    @apply block w-full px-4 py-3 border border-secondary-300 rounded-xl shadow-sm 
+           placeholder-secondary-400 text-sm
+           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 
+           transition-all duration-200 bg-white;
+  }
+  .select-field {
+    @apply input-field appearance-none bg-white bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem;
+  }
+  .textarea-field {
+    @apply input-field resize-y min-h-[80px];
+  }
+
+  /* ── Cards ──────────────────────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-2xl shadow-card border border-secondary-100 overflow-hidden;
+  }
+  .card-hover {
+    @apply card hover:shadow-card-hover hover:border-secondary-200 transition-all duration-300;
+  }
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-sm rounded-xl;
+  }
+
+  /* ── Badges ─────────────────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider;
+  }
+  .badge-success {
+    @apply badge bg-success-100 text-success-700;
+  }
+  .badge-warning {
+    @apply badge bg-warning-100 text-warning-700;
+  }
+  .badge-danger {
+    @apply badge bg-danger-100 text-danger-700;
+  }
+  .badge-info {
+    @apply badge bg-primary-100 text-primary-700;
+  }
+  .badge-neutral {
+    @apply badge bg-secondary-100 text-secondary-600;
+  }
+
+  /* ── Layout & Containers ────────────────────────────────────────── */
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in;
+  }
+  .section-header {
+    @apply mb-8;
+  }
+  .section-header h1 {
+    @apply text-3xl font-extrabold text-secondary-900 tracking-tight mb-2;
+  }
+  .section-header p {
+    @apply text-lg text-secondary-500;
+  }
+
+  /* ── Loading ────────────────────────────────────────────────────── */
+  .page-loader {
+    @apply min-h-[60vh] flex flex-col items-center justify-center gap-4;
+  }
+  .spinner {
+    @apply w-10 h-10 border-4 border-secondary-200 border-t-primary-600 rounded-full animate-spin;
+  }
+
+  /* ── Alerts ─────────────────────────────────────────────────────── */
+  .alert {
+    @apply px-4 py-3 rounded-xl text-sm font-medium border animate-slide-down;
+  }
+  .alert-error {
+    @apply alert bg-danger-50 border-danger-200 text-danger-600;
+  }
+  .alert-success {
+    @apply alert bg-success-50 border-success-200 text-success-700;
+  }
+  .alert-warning {
+    @apply alert bg-warning-50 border-warning-200 text-warning-700;
+  }
+  .alert-info {
+    @apply alert bg-primary-50 border-primary-200 text-primary-700;
+  }
+
+  /* ── Form Layout ────────────────────────────────────────────────── */
+  .form-card {
+    @apply bg-white rounded-2xl border border-secondary-100 p-6 shadow-card;
+  }
+  .form-card h2 {
+    @apply text-lg font-bold text-secondary-900 mb-5 pb-4 border-b border-secondary-100;
+  }
+  .form-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-5;
+  }
+  .form-group {
+    @apply flex flex-col gap-1.5;
+  }
+  .form-group label {
+    @apply text-sm font-medium text-secondary-700;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    @apply input-field;
+  }
+  .form-group select {
+    @apply select-field;
+  }
+  .form-group textarea {
+    @apply textarea-field;
+  }
+  .form-group.full-width {
+    @apply md:col-span-2;
+  }
+  .checkbox-label {
+    @apply flex items-center gap-3 cursor-pointer;
+  }
+  .checkbox-label input[type="checkbox"] {
+    @apply w-5 h-5 text-primary-600 border-secondary-300 rounded focus:ring-primary-500 cursor-pointer;
+  }
+  .checkbox-label span {
+    @apply text-sm font-medium text-secondary-700;
+  }
+
+  /* ── Tables ─────────────────────────────────────────────────────── */
+  .data-table {
+    @apply w-full text-left text-sm;
+  }
+  .data-table thead {
+    @apply text-xs text-secondary-500 uppercase bg-secondary-50 border-b border-secondary-100;
+  }
+  .data-table thead th {
+    @apply px-6 py-4 font-semibold tracking-wider;
+  }
+  .data-table tbody {
+    @apply divide-y divide-secondary-100;
+  }
+  .data-table tbody tr {
+    @apply hover:bg-secondary-50/50 transition-colors;
+  }
+  .data-table tbody td {
+    @apply px-6 py-4 text-secondary-600;
+  }
+
+  /* ── Modals ─────────────────────────────────────────────────────── */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in;
+  }
+  .modal-content {
+    @apply bg-white rounded-2xl shadow-xl-soft p-6 w-full max-w-lg mx-4 animate-scale-in max-h-[90vh] overflow-y-auto;
+  }
+  .modal-header {
+    @apply flex items-center justify-between mb-5 pb-4 border-b border-secondary-100;
+  }
+  .modal-header h2 {
+    @apply text-xl font-bold text-secondary-900 border-b-0 mb-0 pb-0;
+  }
+
+  /* ── Stat Cards ─────────────────────────────────────────────────── */
+  .stat-card {
+    @apply card-hover p-6 flex items-center gap-4;
+  }
+  .stat-card:hover .stat-card-icon {
+    transform: scale(1.1);
+  }
+  .stat-card-icon {
+    @apply w-14 h-14 rounded-xl flex items-center justify-center transition-transform duration-300;
+  }
+  .stat-card-value {
+    @apply text-3xl font-bold text-secondary-900;
+  }
+  .stat-card-label {
+    @apply text-sm font-medium text-secondary-500;
+  }
+
+  /* ── Empty State ────────────────────────────────────────────────── */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-16 text-center;
+  }
+  .empty-state-icon {
+    @apply w-16 h-16 bg-secondary-100 text-secondary-400 rounded-full flex items-center justify-center mb-4;
+  }
+  .empty-state h3 {
+    @apply text-lg font-semibold text-secondary-700 mb-2;
+  }
+  .empty-state p {
+    @apply text-sm text-secondary-500 max-w-sm;
+  }
+}
+
+/* ── Utility Layer ──────────────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400;
+  }
+  .skeleton {
+    @apply bg-gradient-to-r from-secondary-200 via-secondary-100 to-secondary-200 bg-[length:200%_100%] animate-shimmer rounded;
+  }
+}

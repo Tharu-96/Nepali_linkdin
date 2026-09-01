@@ -1,0 +1,34 @@
+1. Start Backend
+
+  Open Command Prompt:
+
+  cd D:\Rozgar\backend
+  .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+	
+  .\.venv\Scripts\Activate.ps1
+  python -m uvicorn app.main:app --reload --port 8000
+
+  Keep this window open.
+
+  Backend docs:
+
+  http://127.0.0.1:8000/docs
+
+  2. Start Frontend
+
+  Open another Command Prompt:
+
+  cd D:\Rozgar\frontend
+  npm run dev -- --host 127.0.0.1
+
+  Open the URL it shows. Usually:
+
+  http://127.0.0.1:5174/
+
+  3. Login
+
+  admin@rozgar.com
+  admin123
+
+  To stop later: press Ctrl + C in both terminal windows.
+

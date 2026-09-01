@@ -1,0 +1,304 @@
+Rozgar - Setup and Run Instructions
+
+Overview
+
+This file explains how to run the project on another Windows PC using VS Code and PowerShell.
+
+This project uses:
+- frontend: React + Vite
+- backend: FastAPI + SQLAlchemy
+- database: SQLite by default, PostgreSQL optional
+
+PHP is not required for this project.
+
+----------------------------------------------------------------------
+1. What you need to install
+----------------------------------------------------------------------
+
+Install these on the other PC:
+
+- Python 3.10 or 3.11
+- Node.js 18+ or 20+
+- npm (comes with Node.js)
+- Git optional
+- PostgreSQL only if you want to use Postgres instead of SQLite
+
+Check versions:
+
+python --version
+node --version
+npm --version
+
+----------------------------------------------------------------------
+2. Best way to move the project
+----------------------------------------------------------------------
+
+Copy the full project folder to the new PC.
+
+If you want the same existing data and settings, keep these files:
+
+- backend/rozgar.db
+- backend/.env
+
+If you copy the whole project folder, they should already be included.
+
+----------------------------------------------------------------------
+3. Project structure
+----------------------------------------------------------------------
+
+Rozgar/
+  backend/
+  frontend/
+  static/
+  README.md
+  RUN_INSTRUCTIONS.txt
+  start-dev.ps1
+
+----------------------------------------------------------------------
+4. Backend setup
+----------------------------------------------------------------------
+
+Open a terminal in VS Code:
+
+cd backend
+
+Create a virtual environment:
+
+python -m venv .venv
+
+Activate it:
+
+.\.venv\Scripts\Activate.ps1
+
+If PowerShell blocks activation, run this once:
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Upgrade tools and install packages:
+
+python -m pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+
+----------------------------------------------------------------------
+5. Backend .env configuration
+----------------------------------------------------------------------
+
+The backend expects a .env file inside backend/.
+
+For the easiest local setup, use SQLite:
+
+DATABASE_URL=sqlite:///./rozgar.db
+SECRET_KEY=change_this_to_a_random_hex_secret
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+GROQ_API_KEY=
+SENDER_EMAIL=
+SENDER_PASSWORD=
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_MAPS_API_KEY=
+GOOGLE_GEOCODING_API_KEY=
+GOOGLE_DISTANCE_MATRIX_API_KEY=
+
+ESEWA_MERCHANT_CODE=EPAYTEST
+ESEWA_SECRET_KEY=change_this_for_production
+ESEWA_PAYMENT_URL=https://rc-epay.esewa.com.np/api/epay/main/v2/form
+ESEWA_VERIFY_URL=https://rc.esewa.com.np/api/epay/txnstatus/
+
+KHALTI_SECRET_KEY=
+KHALTI_PUBLIC_KEY=
+KHALTI_BASE_URL=https://a.khalti.com/api/v2
+KHALTI_INITIATE_URL=
+KHALTI_LOOKUP_URL=
+
+PLATFORM_COMMISSION_RATE=0.08
+FRONTEND_BASE_URL=http://localhost:5173
+PAYMENT_SUCCESS_URL=http://localhost:5173/payment/success
+PAYMENT_FAILURE_URL=http://localhost:5173/payment/failed
+
+Notes:
+
+- SQLite is the easiest setup.
+- If backend/rozgar.db is copied from the old PC, old users and old data will still be available.
+- If GROQ_API_KEY is empty, the app still runs, but the optional assistant and search enhancement features fall back to basic behavior.
+
+----------------------------------------------------------------------
+6. Start backend
+----------------------------------------------------------------------
+
+From backend/:
+
+python -m uvicorn app.main:app --reload --port 8000
+
+Backend URL:
+
+http://127.0.0.1:8000
+
+----------------------------------------------------------------------
+7. Frontend setup
+----------------------------------------------------------------------
+
+Open a second terminal:
+
+cd frontend
+npm install
+npm run dev
+
+Frontend URL:
+
+http://localhost:5173
+
+----------------------------------------------------------------------
+8. Full command list
+----------------------------------------------------------------------
+
+Terminal 1 - Backend
+
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
+
+Terminal 2 - Frontend
+
+cd frontend
+npm install
+npm run dev
+
+----------------------------------------------------------------------
+9. If you need an admin user
+----------------------------------------------------------------------
+
+If the copied database does not already contain an admin account:
+
+cd backend
+.\.venv\Scripts\Activate.ps1
+python create_admin.py "Admin User" admin@rozgar.com admin123
+
+----------------------------------------------------------------------
+10. Optional PostgreSQL setup
+----------------------------------------------------------------------
+
+If you want PostgreSQL instead of SQLite:
+
+1. Install PostgreSQL.
+2. Create a database named rozgar.
+3. Update backend/.env:
+
+DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/rozgar
+
+4. Then run:
+
+cd backend
+.\.venv\Scripts\Activate.ps1
+python migrate.py
+python -c "from app.core.database import Base, engine; Base.metadata.create_all(bind=engine)"
+
+For most local transfers, SQLite is simpler and enough.
+
+----------------------------------------------------------------------
+11. Optional keys for advanced features
+----------------------------------------------------------------------
+
+These are not required just to run the project, but they are needed for some features:
+
+- GROQ_API_KEY: optional assistant and search enhancement features
+- GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET: Google auth related features
+- GOOGLE_MAPS_API_KEY, GOOGLE_GEOCODING_API_KEY, GOOGLE_DISTANCE_MATRIX_API_KEY: maps and distance features
+- SENDER_EMAIL and SENDER_PASSWORD: email and password reset
+- ESEWA_* values: eSewa payments
+- KHALTI_* values: Khalti payments
+
+----------------------------------------------------------------------
+12. Local ports and behavior
+----------------------------------------------------------------------
+
+Default local setup:
+
+- frontend: http://localhost:5173
+- backend: http://127.0.0.1:8000
+
+Chat uses WebSocket through the backend.
+
+As long as:
+
+- backend is running on 8000
+- frontend is running on 5173
+- the user is logged in
+
+chat should work locally.
+
+----------------------------------------------------------------------
+13. Troubleshooting
+----------------------------------------------------------------------
+
+If backend does not start:
+
+- check Python installation
+- check virtual environment activation
+- check pip install completed successfully
+- check backend/.env exists
+
+If frontend does not start:
+
+- check Node.js installation
+- check npm install completed successfully
+
+If login works but some features fail:
+
+- some optional keys may be missing in backend/.env
+
+If chat does not work:
+
+- check backend is running on 8000
+- check frontend is running on 5173
+- check login token is valid
+
+If payments do not work:
+
+- check eSewa and Khalti keys in backend/.env
+
+If maps do not work:
+
+- check Google Maps related keys in backend/.env
+
+----------------------------------------------------------------------
+14. Stop the project
+----------------------------------------------------------------------
+
+In each running terminal:
+
+Ctrl + C
+
+----------------------------------------------------------------------
+15. Included helper script
+----------------------------------------------------------------------
+
+This repository includes:
+
+start-dev.ps1
+
+It opens backend and frontend in separate PowerShell windows, but it assumes:
+
+- backend .venv already exists
+- dependencies are already installed
+
+----------------------------------------------------------------------
+16. Verification checklist
+----------------------------------------------------------------------
+
+After setup:
+
+1. Open http://localhost:5173
+2. Register or login
+3. Check dashboard
+4. Check jobs page
+5. Check profile page
+6. Check chat if needed
+7. Check admin portal if you have admin credentials
+
+End of instructions

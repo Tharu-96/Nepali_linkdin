@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="rozgar-favicon-bg" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#059669" />
+      <stop offset="1" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="rozgar-favicon-accent" x1="18" y1="18" x2="46" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#99f6e4" />
+      <stop offset="1" stop-color="#ffffff" />
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="52" height="52" rx="16" fill="url(#rozgar-favicon-bg)" />
+  <path
+    d="M22 18h13.2c8.3 0 13.3 4.6 13.3 11.8 0 5.3-2.8 9-7.6 10.7L49 48H38.3l-6.7-6.5h-2.8V48H22V18Zm13 15.7c4.1 0 6.4-1.4 6.4-4.3 0-2.9-2.3-4.2-6.4-4.2h-6.2v8.5H35Z"
+    fill="url(#rozgar-favicon-accent)"
+  />
+</svg>
